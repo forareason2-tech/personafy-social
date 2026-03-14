@@ -1,28 +1,69 @@
+"use client";
+
+import { useState } from "react";
+import { supabase } from "../lib/supabase";
+
 export default function HomePage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+
+  async function signUp() {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setMessage("Signup successful! Check your email.");
+    }
+  }
+
+  async function login() {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setMessage("Logged in successfully!");
+    }
+  }
+
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#0f172a",
-        color: "white",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "40px",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <div style={{ textAlign: "center", maxWidth: "800px" }}>
-        <h1 style={{ fontSize: "3rem", marginBottom: "1rem" }}>
-          Personafy Social
-        </h1>
-        <p style={{ fontSize: "1.25rem", marginBottom: "1rem" }}>
-          Build your AI persona. Customize your world. Connect with creators.
-        </p>
-        <p style={{ fontSize: "1rem", opacity: 0.8 }}>
-          This is the beginning of your MySpace-style social platform for the AI era.
-        </p>
-      </div>
+    <main style={{ padding: "40px", fontFamily: "Arial" }}>
+      <h1>Personafy Social</h1>
+
+      <p>Create your AI persona and connect.</p>
+
+      <input
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <br /><br />
+
+      <input
+        placeholder="Password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <br /><br />
+
+      <button onClick={signUp}>Sign Up</button>
+
+      <button onClick={login} style={{ marginLeft: "10px" }}>
+        Login
+      </button>
+
+      <p>{message}</p>
     </main>
   );
 }

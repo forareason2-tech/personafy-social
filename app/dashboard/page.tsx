@@ -1,64 +1,167 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'edge';
-
 export default function DashboardPage() {
   const router = useRouter();
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [personaType, setPersonaType] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    const loadDashboard = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         router.push("/");
-      } else {
-        setUser(user);
+        return;
       }
+
+      setUser(user);
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name, username, bio, avatar_url, persona_type")
+        .eq("id", user.id)
+        .single();
+
+      if (!error && data) {
+        setFullName(data.full_name ?? "");
+        setUsername(data.username ?? "");
+        setBio(data.bio ?? "");
+        setAvatarUrl(data.avatar_url ?? "");
+        setPersonaType(data.persona_type ?? "");
+      }
+
       setLoading(false);
     };
 
-    checkUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!session?.user) {
-          router.push("/");
-        } else {
-          setUser(session.user);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    loadDashboard();
   }, [router]);
 
-  const handleLogout = async () => {
-   
-    await supabase.auth.signOut();
-    router.push("/");
-  };
+  async function saveProfile() {
+    if (!user) return;
 
-  if (loading) {
-    return <div>Loading...</div>;
+    setSaving(true);
+    setMessage("");
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        full_name: fullName,
+        username: username,
+        bio: bio,
+        avatar_url: avatarUrl,
+        persona_type: personaType,
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setMessage("Profile saved successfully!");
+    }
+
+    setSaving(false);
   }
 
-  if (!user) {
-    return null; // Will redirect
+  async function logout() {
+    await supabase.auth.signOut();
+    router.push("/");
+  }
+
+  if (loading) {
+    return (
+      <main style={{ padding: 40, color: "white", background: "#111827", minHeight: "100vh" }}>
+        <h1>Loading dashboard...</h1>
+      </main>
+    );
   }
 
   return (
-    <main style={{ padding: "40px", fontFamily: "Arial" }}>
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "#111827",
+        color: "white",
+        padding: 40,
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
       <h1>Dashboard</h1>
-      <p>Welcome, {user.email}!</p>
+      <p>Welcome, {user?.email}</p>
       <p>This is your personal dashboard.</p>
-      <button onClick={handleLogout}>Logout</button>
+
+      <div style={{ maxWidth: 500, marginTop: 30 }}>
+        <label>Full Name</label>
+        <input
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          style={{ width: "100%", padding: 12, marginTop: 6, marginBottom: 16 }}
+        />
+
+        <label>Username</label>
+        <input
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          style={{ width: "100%", padding: 12, marginTop: 6, marginBottom: 16 }}
+        />
+
+        <label>Bio</label>
+        <textarea
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          style={{ width: "100%", padding: 12, marginTop: 6, marginBottom: 16, minHeight: 100 }}
+        />
+
+        <label>Avatar URL</label>
+        <input
+          value={avatarUrl}
+          onChange={(e) => setAvatarUrl(e.target.value)}
+          style={{ width: "100%", padding: 12, marginTop: 6, marginBottom: 16 }}
+        />
+
+        <label>Persona Type</label>
+        <select
+          value={personaType}
+          onChange={(e) => setPersonaType(e.target.value)}
+          style={{ width: "100%", padding: 12, marginTop: 6, marginBottom: 20 }}
+        >
+          <option value="">Select one</option>
+          <option value="AI DJ">AI DJ</option>
+          <option value="AI Artist">AI Artist</option>
+          <option value="AI Influencer">AI Influencer</option>
+          <option value="AI Meme Creator">AI Meme Creator</option>
+          <option value="AI Coach">AI Coach</option>
+        </select>
+
+        <button
+          onClick={saveProfile}
+          disabled={saving}
+          style={{ padding: "12px 20px", marginRight: 12, cursor: "pointer" }}
+        >
+          {saving ? "Saving..." : "Save Profile"}
+        </button>
+
+        <button onClick={logout} style={{ padding: "12px 20px", cursor: "pointer" }}>
+          Logout
+        </button>
+
+        {message && <p style={{ marginTop: 20 }}>{message}</p>}
+      </div>
     </main>
   );
 }

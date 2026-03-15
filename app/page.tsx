@@ -1,8 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation"
 import { useState } from "react";
-import { getSupabase } from "../lib/supabase";
-
+import { supabase } from "../lib/supabase";
 export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
@@ -12,7 +11,7 @@ export default function HomePage() {
   const [message, setMessage] = useState("");
 
   async function signUp() {
-    const supabase = getSupabase();
+  
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -26,18 +25,17 @@ export default function HomePage() {
   }
 
   async function login() {
-    const supabase = getSupabase();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-    if (error) {
-      setMessage(error.message);
-    } else {
-      router.push("/dashboard");
-    }
+  if (error) {
+    setMessage(error.message);
+  } else {
+    router.push("/dashboard");
   }
+}
 
   return (
     <main style={{ padding: "40px", fontFamily: "Arial" }}>

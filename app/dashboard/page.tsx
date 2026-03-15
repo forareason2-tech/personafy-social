@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase"
+import { supabase } from "../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
 export const dynamic = 'force-dynamic';
@@ -40,7 +40,7 @@ export default function DashboardPage() {
   }, [router]);
 
   const handleLogout = async () => {
-    const supabase = getSupabase();
+   
     await supabase.auth.signOut();
     router.push("/");
   };

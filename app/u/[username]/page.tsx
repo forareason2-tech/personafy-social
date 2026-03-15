@@ -9,7 +9,7 @@ const { data: profile, error } = await supabase
   .from("profiles")
   .select("*")
   .eq("username", params.username.toLowerCase())
-  .single();
+  .maybeSingle();
 
   if (!profile || error) {
     return (

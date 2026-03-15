@@ -1,9 +1,10 @@
 "use client";
-
+import { useRouter } from "next/navigation"
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 
 export default function HomePage() {
+  const router = useRouter()
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -30,7 +31,7 @@ export default function HomePage() {
     if (error) {
       setMessage(error.message);
     } else {
-      setMessage("Logged in successfully!");
+      router.push("/dashboard");
     }
   }
 

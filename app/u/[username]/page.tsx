@@ -8,13 +8,13 @@ const supabase = createClient(
 export default async function ProfilePage({ params }: any) {
   const username = params.username
 
-  const { data } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("username", username)
-    .single()
+const { data: profile, error } = await supabase
+  .from("profiles")
+  .select("*")
+  .eq("username", params.username)
+  .single();
 
-  if (!data) {
+  if (!profile) {
     return (
       <main style={{ padding: 40 }}>
         <h1>User not found</h1>
@@ -32,21 +32,21 @@ export default async function ProfilePage({ params }: any) {
         fontFamily: "Arial",
       }}
     >
-      <h1>{data.full_name}</h1>
-      <p>@{data.username}</p>
+      <h1>{profile.full_name}</h1>
+      <p>@{profile.username}</p>
 
-      {data.avatar_url && (
+      {profile.avatar_url && (
         <img
-          src={data.avatar_url}
-          alt={data.username}
+          src={profile.avatar_url}
+          alt={profile.username}
           style={{ width: 120, borderRadius: 100 }}
         />
       )}
 
-      <p style={{ marginTop: 20 }}>{data.bio}</p>
+      <p style={{ marginTop: 20 }}>{profile.bio}</p>
 
       <p style={{ marginTop: 20 }}>
-        Persona Type: <b>{data.persona_type}</b>
+        Persona Type: <b>{profile.persona_type}</b>
       </p>
     </main>
   )

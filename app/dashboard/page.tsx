@@ -66,14 +66,16 @@ export default function DashboardPage() {
       return;
     }
 
-    const { error } = await supabase.from("profiles").upsert({
-      id: user.id,
-      full_name: fullName,
-      username: username,
-      bio: bio,
-      avatar_url: avatarUrl,
-      persona_type: personaType,
-    });
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        username,
+        full_name: fullName,
+        bio,
+        avatar_url: avatarUrl,
+        persona_type: personaType,
+      })
+      .eq("id", user.id);
 
     if (error) {
       setMessage(error.message);

@@ -8,7 +8,7 @@ export default async function ProfilePage({
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("*")
-    .eq("username", params.username)
+    .eq("username", params.username.toLowerCase())
     .single();
 
   if (!profile || error) {

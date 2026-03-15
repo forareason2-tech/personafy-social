@@ -5,7 +5,6 @@ export default async function ProfilePage({
 }: {
   params: { username: string };
 }) {
-
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("*")

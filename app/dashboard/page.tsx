@@ -11,13 +11,13 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [personaType, setPersonaType] = useState("");
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -36,7 +36,7 @@ export default function DashboardPage() {
         .from("profiles")
         .select("full_name, username, bio, avatar_url, persona_type")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (!error && data) {
         setFullName(data.full_name ?? "");
@@ -53,26 +53,32 @@ export default function DashboardPage() {
   }, [router]);
 
   async function saveProfile() {
-    if (!user) return;
-
     setSaving(true);
     setMessage("");
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        full_name: fullName,
-        username: username,
-        bio: bio,
-        avatar_url: avatarUrl,
-        persona_type: personaType,
-      })
-      .eq("id", user.id);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setMessage("You must be logged in.");
+      setSaving(false);
+      return;
+    }
+
+    const { error } = await supabase.from("profiles").upsert({
+      id: user.id,
+      full_name: fullName,
+      username: username,
+      bio: bio,
+      avatar_url: avatarUrl,
+      persona_type: personaType,
+    });
 
     if (error) {
       setMessage(error.message);
     } else {
-      setMessage("Profile saved successfully!");
+      setMessage("Profile saved successfully");
     }
 
     setSaving(false);
@@ -85,7 +91,15 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <main style={{ padding: 40, color: "white", background: "#111827", minHeight: "100vh" }}>
+      <main
+        style={{
+          minHeight: "100vh",
+          background: "#111827",
+          color: "white",
+          padding: 40,
+          fontFamily: "Arial, sans-serif",
+        }}
+      >
         <h1>Loading dashboard...</h1>
       </main>
     );

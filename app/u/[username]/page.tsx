@@ -1,25 +1,31 @@
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "../../../lib/supabase";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+export default async function ProfilePage({
+  params,
+}: {
+  params: { username: string };
+}) {
 
-export default async function ProfilePage({ params }: any) {
-  const username = params.username
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("username", params.username)
+    .single();
 
-const { data: profile, error } = await supabase
-  .from("profiles")
-  .select("*")
-  .eq("username", params.username)
-  .single();
-
-  if (!profile) {
+  if (!profile || error) {
     return (
-      <main style={{ padding: 40 }}>
+      <main
+        style={{
+          minHeight: "100vh",
+          background: "#111827",
+          color: "white",
+          padding: 40,
+          fontFamily: "Arial",
+        }}
+      >
         <h1>User not found</h1>
       </main>
-    )
+    );
   }
 
   return (
@@ -49,5 +55,5 @@ const { data: profile, error } = await supabase
         Persona Type: <b>{profile.persona_type}</b>
       </p>
     </main>
-  )
+  );
 }

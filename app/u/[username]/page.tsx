@@ -5,11 +5,12 @@ export default async function ProfilePage({
 }: {
   params: { username: string };
 }) {
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("username", params.username.toLowerCase())
-    .single();
+const { data: profile, error } = await supabase
+  .from("profiles")
+  .select("*")
+  .eq("username", params.username.toLowerCase())
+  .select("*")
+  .single();
 
   if (!profile || error) {
     return (
